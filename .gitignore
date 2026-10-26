@@ -1,0 +1,14 @@
+__pycache__/
+.pytest_cache/
+.venv/
+local.settings.json
+local.mail.settings.json
+*.pyc
+*.pyo
+*.log
+.DS_Store
+
+.python_packages
+*.zip
+*.b64.txt
+taskflow-package-bridge*.html

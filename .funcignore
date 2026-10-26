@@ -1,0 +1,16 @@
+.git*
+.vscode/
+.venv/
+__pycache__/
+.pytest_cache/
+tests/
+docs/
+scripts/
+database/
+README.md
+SETUP_GUIDE.md
+requirements-dev.txt
+local.settings.json
+local.settings.example.json
+local.mail.settings.example.json
+send_test_email.py

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Internal task notification and completion dashboard">
+  <title>LLX TaskFlow</title>
+  <link rel="stylesheet" href="./assets/styles.css?v=1720">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#" data-view-link="dashboard" aria-label="TaskFlow home">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <span><strong>TaskFlow</strong><small>LLX Solutions</small></span>
+      </a>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon" aria-hidden="true">⌂</span> Overview</button>
+      </nav>
+
+      <div class="sidebar-help"><span class="help-icon" aria-hidden="true">?</span><div><strong>Need help?</strong><small>Email notifications are sent through Power Automate.</small></div></div>
+      <div class="user-card"><span class="avatar">XL</span><span><strong>Xi Li</strong><small>Administrator</small></span></div>
+    </aside>
+
+    <div class="workspace">
+      <button id="mobileMenu" class="icon-button mobile-menu-button mobile-only" aria-label="Open navigation">☰</button>
+
+      <div id="demoBanner" class="demo-banner" hidden><strong>Local preview</strong><span>No sample tasks are loaded. Connect the dedicated TaskFlow API to use live Cosmos DB data.</span><button id="resetDemo" class="text-button">Clear local tasks</button></div>
+
+      <main>
+        <section id="dashboardView" class="view active" aria-labelledby="dashboardHeading">
+          <div class="welcome-row">
+            <div><p class="eyebrow">INTERNAL WORKSPACE</p><h1 id="dashboardHeading">Good afternoon, Xi</h1><p>Here is what needs your attention across the company.</p></div>
+            <button class="button primary open-create">Create a new task</button>
+          </div>
+
+          <div class="stat-grid" aria-label="Task summary">
+            <article class="stat-card"><span class="stat-icon blue" aria-hidden="true">↗</span><div><span>Active tasks</span><strong id="activeStat">0</strong><small>Currently in progress</small></div></article>
+            <article class="stat-card"><span class="stat-icon green" aria-hidden="true">✓</span><div><span>Average completion</span><strong id="completionStat">0%</strong><small>Across active tasks</small></div></article>
+            <article class="stat-card"><span class="stat-icon amber" aria-hidden="true">!</span><div><span>People pending</span><strong id="pendingStat">0</strong><small>Still need to respond</small></div></article>
+            <article class="stat-card"><span class="stat-icon red" aria-hidden="true">⌁</span><div><span>Overdue</span><strong id="overdueStat">0</strong><small>Require follow-up</small></div></article>
+          </div>
+
+          <div class="content-grid">
+            <section class="panel task-panel">
+              <div class="panel-heading"><div><h3>Tasks in progress</h3><p>Track completion and send reminders.</p></div><button class="text-button" data-view-link="tasks">View all tasks →</button></div>
+              <div id="dashboardTasks" class="task-stack" aria-live="polite"></div>
+            </section>
+            <aside class="panel attention-panel"><div class="panel-heading"><div><h3>Needs attention</h3><p>Items to review today.</p></div></div><div id="attentionList" class="attention-list"></div></aside>
+          </div>
+
+          <section class="panel activity-panel"><div class="panel-heading"><div><h3>Recent activity</h3><p>Latest task and reminder updates.</p></div></div><div id="activityList" class="activity-list"></div></section>
+        </section>
+
+        <section id="tasksView" class="view" aria-labelledby="taskTableTitle">
+          <div class="toolbar panel">
+            <label class="search-field"><span aria-hidden="true">⌕</span><input id="taskSearch" type="search" placeholder="Search tasks or recipients" aria-label="Search tasks"></label>
+            <div class="filter-tabs" role="group" aria-label="Filter tasks by status"><button class="filter-tab active" data-filter="all">All</button><button class="filter-tab" data-filter="active">Active</button><button class="filter-tab" data-filter="completed">Completed</button></div>
+          </div>
+          <section class="panel table-panel">
+            <div class="panel-heading"><div><h3 id="taskTableTitle">All tasks</h3><p id="taskTableCount">Loading…</p></div></div>
+            <div class="table-scroll"><table class="task-table"><thead><tr><th>Task</th><th>Status</th><th>Due date</th><th>Progress</th><th>Owner</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="taskTableBody"></tbody></table></div>
+            <div id="emptyTasks" class="empty-state" hidden><span aria-hidden="true">✓</span><h3>No tasks found</h3><p>Try another filter or create a new task.</p></div>
+          </section>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <dialog id="createDialog" class="modal wide-modal">
+    <form id="taskForm" method="dialog">
+      <div class="modal-header"><div><span class="modal-kicker">NEW NOTIFICATION</span><h2>Create a task</h2><p>Set the task details, recipients, and automatic reminder schedule.</p></div><button type="button" class="icon-button close-modal" aria-label="Close">×</button></div>
+      <div class="form-section"><h3>Task details</h3><div class="form-grid two">
+        <label class="field full">Task title <span>*</span><input name="title" required maxlength="250" placeholder="e.g. Sign updated employee handbook"></label>
+        <label class="field">Task type<select name="taskType"><option value="signature">Document signature</option><option value="acknowledgment">Acknowledgment</option><option value="training">Training</option><option value="general">General task</option></select></label>
+        <label class="field">Priority<select name="priority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option><option value="low">Low</option></select></label>
+        <label class="field">Due date <span>*</span><input name="dueAt" type="datetime-local" required></label>
+        <label class="field">Task link<input name="actionUrl" type="url" placeholder="https://..."></label>
+      </div></div>
+      <div class="form-section"><h3>Email notification</h3><div class="form-grid">
+        <label class="field">Email subject <span>*</span><input name="emailSubject" required maxlength="250" placeholder="Action required: Please sign by Friday"></label>
+        <label class="field">Message <span>*</span><textarea name="message" required rows="5" placeholder="Explain what employees need to do and why."></textarea></label>
+        <label class="field">Recipients <span>*</span><textarea name="recipients" required rows="3" placeholder="One email address per line"></textarea><small>For this MVP, enter individual email addresses. Distribution groups can be added later.</small></label>
+      </div></div>
+      <div class="form-section"><div class="section-title-row"><h3>Reminder schedule</h3><span class="automation-pill">Automatic</span></div><div class="form-grid three">
+        <label class="field">After task creation<input name="daysAfter" value="3" placeholder="3"></label>
+        <label class="field">Before due date<input name="daysBefore" value="3, 1, 0" placeholder="3, 1, 0"></label>
+        <label class="field">When overdue<select name="overdueFrequency"><option value="1">Every business day</option><option value="2">Every 2 days</option><option value="3">Every 3 days</option><option value="0">Do not remind</option></select></label>
+      </div><label class="check-field"><input name="excludeWeekends" type="checkbox" checked> Skip weekend reminders</label></div>
+      <div class="modal-footer"><span id="formStatus" class="form-status" role="status"></span><div><button type="button" class="button secondary close-modal">Cancel</button><button type="submit" class="button primary">Create task &amp; send email</button></div></div>
+    </form>
+  </dialog>
+
+  <dialog id="taskDialog" class="modal detail-modal"><div class="modal-header"><div><span id="detailType" class="modal-kicker">TASK DETAILS</span><h2 id="dialogTitle">Task details</h2><p id="detailSubtitle"></p></div><button id="closeTaskDialog" class="icon-button" aria-label="Close">×</button></div><div id="dialogBody" class="detail-body"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./assets/app.js?v=1830"></script>
+</body>
+</html>
