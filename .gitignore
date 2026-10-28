@@ -12,3 +12,11 @@ local.mail.settings.json
 *.zip
 *.b64.txt
 taskflow-package-bridge*.html
+node_modules/
+dist/
+sample_documents/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
