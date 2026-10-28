@@ -1,4 +1,85 @@
-# LLX TaskFlow MVP
+# Document Signing Tool -- FrontEnd
+
+Internal tool for collecting signatures on PDF documents. Hosted from SharePoint, with documents and signing status stored in Azure. Users upload a PDF, place signature fields, send it to colleagues to sign, and get reminders when signatures are overdue.
+
+## Layout
+
+| Folder      | Contents                              |
+| ----------- | ------------------------------------- |
+| `frontend/` | React + TypeScript (Vite) web client  |
+| `backend/`  | Node.js API (to be added)             |
+| `docs/`     | Project notes, including [security checklist](docs/SECURITY.md) |
+
+## Frontend
+
+From the repo root:
+
+```sh
+npm run install:frontend   # first time only
+npm run dev                # http://localhost:5173
+```
+
+(Or `cd frontend` and use `npm install` / `npm run dev` there.)
+
+The upload address defaults to `VITE_UPLOAD_URL`. Copy `frontend/.env.example` to `frontend/.env.local` to set it. In dev builds you can also edit it on the Review & send step.
+
+To test without the real backend, run `npm run echo` in a second terminal. It starts a stand-in server on `http://localhost:3001/upload` that reports what it received.
+
+### Screens
+
+Built from the templates in `docs/sample_uis_21OCT2026.pptx`. The sending mode chosen on the upload step decides which branch the workflow takes:
+
+| Step | One document, many signers (`shared`) | One document per signer (`copies`) |
+| --- | --- | --- |
+| Sign in | Slide 1 | Slide 1 |
+| 1. Upload | Slide 3 | Slide 3 |
+| 2. Add signers | Slide 4: each signer has their own deadline; optional signing order | Slide 5: paste, search or import a CSV of emails; one shared deadline |
+| 3. Place fields | Slide 6: fields assigned per signer, colour-coded | Slide 7: one layout used on every copy |
+| 4. Review & send | Slide 8 | Slide 8 |
+
+Slide 2 (status tracking) is on hold per the 21 Oct meeting notes. It will become an admin page.
+
+**Placeholders still to replace:**
+- **Sign-in:** not connected. Dev builds accept any password; production builds refuse to sign in.
+- **People and group search:** uses mock data in `frontend/src/data/directory.ts`.
+- **Email templates:** in `frontend/src/data/emailTemplates.ts`.
+
+### Upload contract
+
+**Send for signature** sends `POST <upload address>` as `multipart/form-data` with two fields:
+
+- **`file`**: the PDF.
+- **`request`**: JSON describing the request (built in `frontend/src/lib/request.ts`):
+
+```jsonc
+{
+  "mode": "shared",                 // or "copies"
+  "documentName": "Vendor_Agreement.pdf",
+  "pageCount": 2,
+  "enforceSigningOrder": true,      // shared mode only
+  "reminderDaysBeforeDue": 3,
+  "signers": [
+    {
+      "order": 1,
+      "email": "alex.morgan@company.com",
+      "name": "Alex Morgan",
+      "dueDate": "2026-11-03",
+      "message": { "subject": "…", "body": "…" }  // placeholders already filled in
+    }
+  ],
+  "fields": [
+    {
+      "type": "signature",          // signature | initials | reason | date
+      "page": 1,
+      "x": 0.13, "y": 0.32, "width": 0.34, "height": 0.055,  // fractions of the page, from its top-left corner
+      "signerEmail": "alex.morgan@company.com"               // null in copies mode = on every copy
+    }
+  ]
+}
+```
+
+The backend is expected to add each signer's secure signing link to their email. Any 2xx response counts as success. Because the frontend and API run on different origins, the backend must send CORS headers.
+# LLX TaskFlow MVP -- Backend
 
 TaskFlow is a non-technical internal website for creating company tasks, sending email notifications, tracking employee completion, and reminding only the people who are still pending.
 
