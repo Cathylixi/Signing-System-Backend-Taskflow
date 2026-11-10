@@ -8,6 +8,8 @@ export type SendingMode = 'shared' | 'copies'
 
 export type Step = 'upload' | 'signers' | 'fields' | 'review' | 'sent'
 
+export type DashboardPage = 'dashboard' | 'documents' | 'sent' | 'templates'
+
 export type FieldType = 'signature' | 'initials' | 'reason' | 'date'
 
 export interface Signer {

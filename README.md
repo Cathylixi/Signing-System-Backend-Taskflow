@@ -39,7 +39,17 @@ Built from the templates in `docs/sample_uis_21OCT2026.pptx`. The sending mode c
 
 Slide 2 (status tracking) is on hold per the 21 Oct meeting notes. It will become an admin page.
 
+After sign-in the app opens on the dashboards from slides 2–5 of `sample_documents/sample_uis_04NOV2026_post_meeting.pptx`. Every dashboard has **New document upload** (starts the workflow above) and **New document from template** (opens Templates):
+
+| Page | Slide | Shows |
+| --- | --- | --- |
+| Dashboard | 2 | Counts, plus the four nearest-due documents waiting on you and out for signature |
+| My documents | 3 | Every document you sent or were asked to sign, with search and status filters |
+| Sent for signature | 4 | Documents you sent, their progress, and a Remind action |
+| Templates | 5 | Approved templates, with search and category filters |
+
 **Placeholders still to replace:**
+- **Dashboard data:** documents and templates are mock data in `frontend/src/data/documents.ts`. **Remind** and **Use template** show a "not connected yet" message.
 - **Sign-in:** not connected. Dev builds accept any password; production builds refuse to sign in.
 - **People and group search:** uses mock data in `frontend/src/data/directory.ts`.
 - **Email templates:** in `frontend/src/data/emailTemplates.ts`.

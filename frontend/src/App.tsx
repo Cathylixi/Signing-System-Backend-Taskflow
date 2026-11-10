@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import type { SendResult } from './api/sendRequest'
+import { DashboardLayout } from './components/DashboardLayout'
 import { WorkflowLayout } from './components/WorkflowLayout'
 import { stepIndex } from './lib/steps'
 import { EMAIL_TEMPLATES } from './data/emailTemplates'
 import { isoDateFromToday, newId } from './lib/format'
-import { nameForEmail, parseEmailList } from './lib/people'
+import { greeting, nameForEmail, parseEmailList } from './lib/people'
 import { CopiesSignersAside, CopiesSignersMain } from './pages/CopiesSignersStep'
+import DashboardHome from './pages/DashboardHome'
 import FieldsStep from './pages/FieldsStep'
 import LoginPage from './pages/LoginPage'
+import MyDocumentsPage, { type DocumentFilter } from './pages/MyDocumentsPage'
 import { ReviewAside, ReviewMain } from './pages/ReviewStep'
+import SentForSignaturePage from './pages/SentForSignaturePage'
 import SentPage from './pages/SentPage'
 import { SharedSignersAside, SharedSignersMain } from './pages/SharedSignersStep'
+import TemplatesPage, { TEMPLATE_SEARCH_ID } from './pages/TemplatesPage'
 import { UploadAside, UploadMain } from './pages/UploadStep'
-import type { Draft, SendingMode, Signer, Step } from './types'
+import type { DashboardPage, Draft, SendingMode, Signer, Step } from './types'
 import './App.css'
 
 const DEFAULT_DUE_DAYS = 7
@@ -56,6 +61,9 @@ function syncCopiesSigners(prev: Draft, next: Draft): Draft {
 
 function App() {
   const [user, setUser] = useState<string | null>(null)
+  // 'workflow' is the signing workflow; everything else is a dashboard page.
+  const [page, setPage] = useState<DashboardPage | 'workflow'>('dashboard')
+  const [docFilter, setDocFilter] = useState<DocumentFilter>('all')
   const [step, setStep] = useState<Step>('upload')
   const [maxReached, setMaxReached] = useState(0)
   const [draft, setDraft] = useState<Draft>(emptyDraft)
@@ -76,6 +84,34 @@ function App() {
     setStep('upload')
     setMaxReached(0)
     setSent(null)
+  }
+
+  function openPage(next: DashboardPage, filter: DocumentFilter = 'all') {
+    setPage(next)
+    setDocFilter(filter)
+    window.scrollTo(0, 0)
+  }
+
+  function startUpload() {
+    reset()
+    setPage('workflow')
+    window.scrollTo(0, 0)
+  }
+
+  function startFromTemplate() {
+    openPage('templates')
+    requestAnimationFrame(() => document.getElementById(TEMPLATE_SEARCH_ID)?.focus())
+  }
+
+  function exitToDashboard() {
+    reset()
+    openPage('dashboard')
+  }
+
+  function signOut() {
+    reset()
+    setPage('dashboard')
+    setUser(null)
   }
 
   // Switching mode keeps the people entered but clears field placement,
@@ -126,6 +162,55 @@ function App() {
 
   if (!user) return <LoginPage onSignIn={setUser} />
 
+  if (page !== 'workflow') {
+    const shell = {
+      page,
+      onNavigate: (next: DashboardPage) => openPage(next),
+      user,
+      onSignOut: signOut,
+      onNewUpload: startUpload,
+      onNewFromTemplate: startFromTemplate,
+    }
+    if (page === 'documents') {
+      return (
+        <DashboardLayout {...shell} title="My documents" subtitle="Every document you sent or were asked to sign.">
+          <MyDocumentsPage key={docFilter} initialFilter={docFilter} />
+        </DashboardLayout>
+      )
+    }
+    if (page === 'sent') {
+      return (
+        <DashboardLayout
+          {...shell}
+          title="Sent for signature"
+          subtitle="Track documents you sent and remind signers who haven't responded."
+        >
+          <SentForSignaturePage />
+        </DashboardLayout>
+      )
+    }
+    if (page === 'templates') {
+      return (
+        <DashboardLayout
+          {...shell}
+          title="Templates"
+          subtitle="Start from an approved template with fields and signer roles already placed."
+        >
+          <TemplatesPage />
+        </DashboardLayout>
+      )
+    }
+    return (
+      <DashboardLayout
+        {...shell}
+        title={greeting(user)}
+        subtitle="Documents you sent and documents waiting on you, in one view."
+      >
+        <DashboardHome onNavigate={openPage} />
+      </DashboardLayout>
+    )
+  }
+
   if (step === 'sent' && sent) {
     return (
       <SentPage
@@ -133,6 +218,7 @@ function App() {
         signerCount={draft.signers.length}
         result={sent}
         onStartOver={reset}
+        onDashboard={exitToDashboard}
       />
     )
   }
@@ -146,10 +232,8 @@ function App() {
     maxReached,
     onNavigate: go,
     user,
-    onSignOut: () => {
-      reset()
-      setUser(null)
-    },
+    onSignOut: signOut,
+    onExit: exitToDashboard,
   }
 
   if (step === 'upload') {

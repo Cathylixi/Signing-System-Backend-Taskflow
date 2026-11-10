@@ -23,6 +23,8 @@ interface WorkflowLayoutProps {
   onNavigate: (step: Step) => void
   user: string
   onSignOut: () => void
+  /** Leaves the workflow for the dashboard, discarding the draft. */
+  onExit: () => void
   title: string
   subtitle: string
   aside?: ReactNode
@@ -35,6 +37,7 @@ export function WorkflowLayout({
   onNavigate,
   user,
   onSignOut,
+  onExit,
   title,
   subtitle,
   aside,
@@ -74,6 +77,9 @@ export function WorkflowLayout({
               </li>
             ))}
           </ol>
+          <button type="button" className="link-button on-dark sidebar-exit" onClick={onExit}>
+            ← Back to dashboard
+          </button>
           <div className="sidebar-footer">
             <span className="sidebar-user" title={user}>
               {user}

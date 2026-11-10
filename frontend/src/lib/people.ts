@@ -18,6 +18,13 @@ export function nameForEmail(email: string): string {
     .join(' ')
 }
 
+/** "Good afternoon, Xi" */
+export function greeting(email: string, now = new Date()): string {
+  const hour = now.getHours()
+  const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
+  return `Good ${part}, ${nameForEmail(email).split(' ')[0]}`
+}
+
 export function initials(name: string): string {
   const parts = name.split(/\s+/).filter(Boolean)
   return parts.map((p) => p[0].toUpperCase()).slice(0, 2).join('') || '?'

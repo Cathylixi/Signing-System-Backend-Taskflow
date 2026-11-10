@@ -7,9 +7,10 @@ interface Props {
   signerCount: number
   result: SendResult
   onStartOver: () => void
+  onDashboard: () => void
 }
 
-export default function SentPage({ documentName, signerCount, result, onStartOver }: Props) {
+export default function SentPage({ documentName, signerCount, result, onStartOver, onDashboard }: Props) {
   return (
     <div className="workspace">
       <TopBar />
@@ -29,9 +30,14 @@ export default function SentPage({ documentName, signerCount, result, onStartOve
               <pre>{result.body}</pre>
             </details>
           )}
-          <button type="button" className="btn btn-primary" onClick={onStartOver}>
-            Start a new request
-          </button>
+          <div className="sent-actions">
+            <button type="button" className="btn btn-primary" onClick={onStartOver}>
+              Start a new request
+            </button>
+            <button type="button" className="btn btn-outline" onClick={onDashboard}>
+              Back to dashboard
+            </button>
+          </div>
         </div>
       </main>
     </div>
